@@ -17,7 +17,7 @@ Private Function ftaMatarProcesso( _
     strNomeProcesso As String, _
     Optional strSim As Boolean = True) As Boolean
     
-    On Error GoTo trataErro
+    If Not blnDebug = True Then On Error GoTo Erro
     
     Dim strRecebeProcesso As String
   
@@ -31,12 +31,14 @@ Private Function ftaMatarProcesso( _
             If ProcessoAEncerrar.Name = strNomeProcesso Then
                 strRecebeProcesso = ProcessoAEncerrar.Name
                 Text2.Text = strRecebeProcesso
-            
-            ElseIf ProcessoAEncerrar.Name = "" Then
-                Debug.Print "O processo não está em execução"
-                Exit Function
             End If
         Next
+        
+        If strRecebeProcesso = "" Then
+            MsgBox "O processo não está em execução"
+            Debug.Print "O processo não está em execução"
+            Exit Function
+        End If
     End If
   
     'Eliminamos as variaveis objeto
@@ -64,8 +66,11 @@ Private Function ftaMatarProcesso( _
     'Elimina as variaveis
     Set ListaProcessos = Nothing
     Set ObjetoWMI = Nothing
-trataErro:
-    Debug.Print "Erro ao encerrar o processo"
+    
+Exit Function
+Erro:
+    Call ftaTrataErro
+    Debug.Print "Erro ao encerrar processo"
     
 End Function
 
