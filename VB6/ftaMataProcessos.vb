@@ -6,11 +6,11 @@ Private Declare Function FindWindow Lib "user32.dll" Alias "FindWindowA" (ByVal 
 Private Declare Function WMI Lib "user32.dll" Alias "FindWindowA" (ByVal lpClassName As Long, ByVal lpWindowName As String) As Long
 
 '---------------------------------------------------------------------------------------'
-'Procedure:   ftaMatarProcesso                                                          '
+'Função:   ftaMatarProcesso                                                             '
 'Autor: Thiago                                                                          '
 'Data: 23/05/2022                                                                       '
 'Propósito: Mata o processo selecionado, chamada no form unload faturamento             '
-'                                                                                       '
+'Observação: É necessário o componente WMI Lib "user32.dll", encontra-se em modVariaveis'
 '---------------------------------------------------------------------------------------'
 Public Function ftaMatarProcesso( _
     strNomeProcesso As String, _
@@ -39,7 +39,7 @@ Public Function ftaMatarProcesso( _
 
         'Verifica se o processo existe
         If strRecebeProcesso = "" Then
-            Debug.Print "O processo não está em execução"
+            'Debug.Print "O processo não está em execução"
             Exit Function
         End If
     End If
@@ -62,6 +62,7 @@ Public Function ftaMatarProcesso( _
                 ProcessoAEncerrar.Terminate (0)
                 ftaMatarProcesso = True
             End If
+    
         Next
     End If
 
