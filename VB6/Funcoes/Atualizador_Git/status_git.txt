@@ -1,0 +1,23 @@
+On branch thiago
+Your branch is up to date with 'origin/thiago'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ShellGit.sh
+	modified:   ShellGitPull.sh
+	deleted:    Taura Embalagem.exe
+	modified:   Taura/Formularios/frmC_FuncoesInternas.frm
+	modified:   Taura/Formularios/frmC_ItensSistema.frm
+	modified:   Taura/Modulos Sistema/Taura Almoxarifado/Projeto/Taura_Almoxarifado.vbw
+	modified:   Taura/Modulos Sistema/Taura Faturamento/Projeto/Taura_Faturamento.vbw
+	modified:   Taura/Modulos Sistema/Taura Gestor/Projeto/Taura_Gestor.vbw
+	modified:   Taura/Modulos/modFuncoes.bas
+	modified:   status_git.txt
+	modified:   status_git_pull.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	Taura Embalagem_20220728.exe
+
+no changes added to commit (use "git add" and/or "git commit -a")
