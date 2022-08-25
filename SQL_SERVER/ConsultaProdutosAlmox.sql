@@ -1,21 +1,21 @@
 
---ver um dia na a045 que esteja gravado um saldo de estoque
+--Query √© utilizada para alimentar o grid do formul√°rio de consulta de produtos do almoxarifado
 
 --Query Consulta produtos almox
 SELECT 
 	a014_codigo                                                     AS [ID],             
-	a014_codigo                                                     AS [C”DIGO],         
-	a014_descricao                                                  AS [DESCRI«√O],      
+	a014_codigo                                                     AS [C√ìDIGO],         
+	a014_descricao                                                  AS [DESCRI√á√ÉO],      
 	a014_end_almox                                                  AS [END. ALMOX.],    
-	ISNULL(a014_estoque_maximo, 0)                                  AS [ESTOQUE M¡XIMO], 
+	ISNULL(a014_estoque_maximo, 0)                                  AS [ESTOQUE M√ÅXIMO], 
 	ISNULL(a025_sigla,'-')                                          AS [UNID. PRI.],     
 	SUM( ISNULL(a045_saldo_up, 0) )                                 AS [SALDO UP],       
 	SUM( ISNULL(a045_saldo_us, 0) )                                 AS [SALDO US],       
-	a014_preco_venda                                                AS [PRE«O VENDA],    
+	a014_preco_venda                                                AS [PRE√áO VENDA],    
 	ISNULL( a014_preco_venda * CONVERT(INTEGER, a045_saldo_up), 0 ) AS [VALOR TOTAL],    
 	a014_estado_cadastro                                            AS [EST. CAD.],      
 	ISNULL(a016_nome,'-')                                           AS [MARCA],          
-	ISNULL(a026_nome,'-')                                           AS [FAMÕLIA],        
+	ISNULL(a026_nome,'-')                                           AS [FAM√çLIA],        
 	ISNULL(a027_nome,'-')                                           AS [GRUPO],          
 	ISNULL(a028_nome,'-')                                           AS [SUB-GRUPO],      
 	ISNULL(a029_nome,'-')                                           AS [CLASSE]          
