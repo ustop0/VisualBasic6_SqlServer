@@ -51,17 +51,29 @@ Erro:
 End Function
 
 
-'----------------------------------------------------------------------------------------'
-'Função: ftaDesconectaInatividade                                                        '
-'Autor: Thiago Ianzer                                                                    '
-'Data: 22/07/2022                                                                        '
-'Propósito: Fechar o sistema por tempo de inatividade                                    '
-'Observação: É utilizada dentro da função ftaSQL(), recebendo o tempo da ultima operação '
-'da função na variável global modVariaveis.strTempoUltimaOperacao                        '
-'----------------------------------------------------------------------------------------'
+'---------------------------------------------------------------------------------------------'
+'**********************************Funções de Inatividade*************************************'
+'---------------------------------------------------------------------------------------------'
+'Função: Essa série de funções dão suporte a ftaDesconectaInatividade                         '
+'Autor: Thiago Ianzer                                                                         '
+'Data: 27/10/2022                                                                             '
+'Propósito: Permitir funcionalidade de desconexão por inatividade do sistema                  '
+'                                                                                             '
+'---------------------------------------------------------------------------------------------'
+
+'---------------------------------------------------------------------------------------------'
+'Função: ftaDesconectaInatividade                                                             '
+'Autor: Thiago Ianzer                                                                         '
+'Data: 22/07/2022                                                                             '
+'Propósito: Fechar o sistema por tempo de inatividade                                         '
+'Observação: É utilizada dentro da função ftaSQL() e ftaSQLRO, recebendo o tempo da ultima    '
+'operação da função na variável global modVariaveis.strTempoUltimaOperacao                    '
+'---------------------------------------------------------------------------------------------'
 Public Function ftaDesconectaInatividade(ByVal strTempo As Date)
 
 If Not blnDebug = True Then On Error GoTo Erro
+'Exit Function
+
 'Variáveis de tratativa do tempo
     Dim strTempoUltimoSQL As Date
     Dim strTempoAtual As Date
@@ -70,29 +82,107 @@ If Not blnDebug = True Then On Error GoTo Erro
     
     strTempoUltimoSQL = strTempo
     strTempoAtual = Time
-    'strTempoLimite = "00:00:30"
-    strTempoLimite = ftaParametro("INATIVIDADE_TEMPO_MAXIMO", "")
+    'strTempoLimite = "00:00:05"
+    strTempoLimite = ftaBuscaParametroInatividade("INATIVIDADE_TEMPO_MAXIMO", "")
     strTempoDesconexao = strTempoAtual - strTempoUltimoSQL
     
     
-'Se o tempo da última operação com banco de dados e o tempo limite do parametro forem maior que 00:00:00 e o usuário não tiver a permissão 01-597 realiza a tratativa
+'Se o tempo da última operação com banco de dados e o tempo limite do parametro forem maior que 00:00:00 e se o usuário não tiver a permissão 01-597 realiza a tratativa
     If strTempoUltimoSQL <> CDate("00:00:00") And ftaVerificaPermissao("01-597") = False Then
          
-    'Verifica o tempo para desconexão do sistema, se passar do tempo estabelecido no pelo parametro fecha o sistema
-         If strTempoDesconexao > Format(strTempoLimite, "h:m:s") Then
+    'Verifica o tempo para desconexão do sistema, se passar do tempo estabelecido no pelo parametro e fecha o sistema
+        If strTempoDesconexao > Format(strTempoLimite, "h:m:s") Then
              
-             MsgBox "O tempo máximo de inatividade foi excedido, você será desconectado", vbInformation
+            MsgBox "O tempo máximo de inatividade foi excedido, você será desconectado", vbInformation
              
         'Fecha o módulo desktop e depois encerra o módulo atual
              'Call ftaMatarProcesso("Taura Desktop.exe")
-             End
+            
+            End
              
-          End If
+        End If
        
-     End If
+    End If
+
 
     Exit Function
 Erro:
    Call ftaTrataErro
    
 End Function
+
+'------------------------------------------------------------------'
+'Autor: Thiago Ianzer                                              '
+'Data: 27/10/2022                                                  '
+'Propósito: Buscar valor do parametro (Tempo de Inatividade)       '
+'------------------------------------------------------------------'
+Public Function ftaBuscaParametroInatividade(strParametroInatividade As String, strFilialTrabalho As String) As String
+
+'Buscando parametro
+    Dim rdsParametro As ADODB.Recordset
+    
+    If strFilialTrabalho = "" Then
+        Set rdsParametro = ftaSqlInatividade("Select " & _
+                                                "[x002_nome] " & _
+                                                ",[x002_valor] " & _
+                                             "From " & _
+                                                "[x002] (NOLOCK) " & _
+                                             "Where " & _
+                                                "x002_nome = '" & strParametroInatividade & "'")
+    Else
+        Set rdsParametro = ftaSqlInatividade("Select " & _
+                                                "[x002_nome] " & _
+                                                ",[x002_valor] " & _
+                                             "From " & _
+                                                "[x002] (NOLOCK) " & _
+                                             "Where " & _
+                                                "x002_nome = '" & strParametroInatividade & "' " & _
+                                                "and x002_filial = '" & Trim(strFilTrab) & "'")
+    End If
+    
+    If rdsParametro.RecordCount = 0 Then
+        MsgBox "Parametro: " & UCase(strParametroInatividade) & ", não encontrado.", vbInformation
+        rdsParametro.Close
+    Else
+        ftaBuscaParametroInatividade = rdsParametro.Fields(1).Value
+        rdsParametro.Close
+    End If
+        
+        
+    Exit Function
+ftaParametro_Error:
+    Call ftaTrataErro
+
+End Function
+
+'------------------------------------------------------------------'
+'Autor: Thiago Ianzer                                              '
+'Data: 27/10/2022                                                  '
+'Propósito: Recebe a consulta que busca o parametro no banco       '
+'------------------------------------------------------------------'
+Public Function ftaSqlInatividade(strSQL As String) As ADODB.Recordset
+
+'On Error GoTo Erro
+
+    Dim rds As ADODB.Recordset
+
+    Set rds = CreateObject("ADODB.RecordSet")
+
+    rds.CursorLocation = adUseClient
+
+    'rds.Open strSql, cnnConexaoSQL, adOpenStatic, adLockReadOnly
+    rds.Open strSQL, cnnConexaoSQL, adOpenForwardOnly, adLockReadOnly
+
+
+    Set ftaSqlInatividade = rds
+
+    Exit Function
+Erro:
+    'Call ftaTrataErro
+    MsgBox "Erro: " & Err.Number & " - " & Err.Description & vbNewLine & vbNewLine & strSQL, vbCritical
+
+End Function
+'---------------------------------------------------------------------------------------------'
+'**********************************Funções de Inatividade*************************************'
+'---------------------------------------------------------------------------------------------'
+
