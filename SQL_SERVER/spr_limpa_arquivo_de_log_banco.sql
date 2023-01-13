@@ -1,3 +1,17 @@
+
+/*
+	'---------------------------------------------------------------------------------------
+	' Autor     : Thiago Ianzer
+	' Data      : 06/12/2022
+	' Propósito : Procedimento para limpar o arquivo de log do banco de dados , quando otamanho for excedido ele deve limpar os registros de log e liberar 
+	'			  espaço em algumas tabelas específicas
+	'---------------------------------------------------------------------------------------
+	' Atualizações:
+		| Data		| Por					| Descrição																											|
+		------------+-----------------------+--------------------------------------------------------------------------------------------------------------------
+
+*/
+	
 	CREATE PROCEDURE [dbo].[spr_limpa_arquivo_de_log_banco]
 			AS
 			BEGIN
