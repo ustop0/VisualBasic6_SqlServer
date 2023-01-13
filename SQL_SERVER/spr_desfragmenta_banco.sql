@@ -1,0 +1,104 @@
+
+			/*
+				'---------------------------------------------------------------------------------------
+				' Autor     : Thiago Ianzer
+				' Data      : 16/12/2022
+				' Propósito : Desfragmenta o banco de dados reogrnizando ou reconstruindo os indices da tabela com base no seu nível de fragmentação
+				'---------------------------------------------------------------------------------------
+				' Atualizações:
+					| Data		| Por					| Descrição																											|
+					------------+-----------------------+--------------------------------------------------------------------------------------------------------------------
+
+			*/
+
+			CREATE PROCEDURE [dbo].[spr_desfragmenta_banco]
+			AS
+			BEGIN
+	
+				--Autor: Thiago Ianzer
+				--Data: 16/12/2022
+				--Propósito: Desfragmentar o banco de dados (reorganiza  e reconstrói os indices das tabelas)
+
+				DECLARE @nome_tabela NVARCHAR(300)
+				DECLARE @nome_indice NVARCHAR(500)
+				DECLARE @fragmentacao_media NVARCHAR(300)
+				DECLARE @script NVARCHAR(600)
+
+				DECLARE @cont INTEGER
+				DECLARE @cont_not INTEGER
+
+				SET @cont = 0
+				SET @cont_not = 0
+
+				-- Cursor para percorrer os registros
+				DECLARE desfragmenta_banco CURSOR FOR
+
+
+					-- Consultar a fragmentação média:
+					SELECT
+						( object_name(b.object_id) )		AS [nome_tabela],
+						ISNULL( name, '(NENHUM INDICE)')	AS [nome_indice],
+						avg_fragmentation_in_percent		AS [fragmentacao_media],
+						ISNULL( (case
+									when avg_fragmentation_in_percent > 30 then 'alter index ' + name + ' on ' + object_name(b.object_id) + ' rebuild with (online = on)'
+									when avg_fragmentation_in_percent >= 5 and avg_fragmentation_in_percent <= 30 then 'alter index ' + name + ' on ' + object_name(b.object_id) + ' reorganize'
+								end), '(NENHUM SCRIPT)')	AS [script]
+					FROM 
+						sys.dm_db_index_physical_stats (db_id('curso'), null, null, null, null) AS a -- (Parâmetros da função: banco de dados, tabela, indice, partição física, modo de analise: default, null, limited (limitado), sampled (amostra), detailed (detalhado))
+						JOIN sys.indexes AS b ON (a.object_id = b.object_id and a.index_id = b.index_id)
+					WHERE
+						avg_fragmentation_in_percent <> 0	AND
+						name <> '(NENHUM INDICE)'			AND
+						(case
+							when avg_fragmentation_in_percent > 30 then 'alter index ' + name + ' on ' + object_name(b.object_id) + ' rebuild with (online = on)'
+							when avg_fragmentation_in_percent >= 5 and avg_fragmentation_in_percent <= 30 then 'alter index ' + name + ' on ' + object_name(b.object_id) + ' reorganize'
+						 end) <> '(NENHUM SCRIPT)'
+					ORDER BY
+						avg_fragmentation_in_percent DESC
+
+		
+				--Abrindo Cursor
+				OPEN desfragmenta_banco
+ 
+				-- Lendo a próxima linha
+				FETCH NEXT FROM desfragmenta_banco INTO @nome_tabela, @nome_indice, @fragmentacao_media, @script
+ 
+				-- Percorrendo linhas do cursor (enquanto houverem)
+				WHILE @@FETCH_STATUS = 0
+				BEGIN
+ 
+				-- Executando as rotinas de reorganização e reconstrução dos indices
+					BEGIN TRY
+
+						EXEC( @script )
+						print 'Indice: ' + @nome_indice + ' desfragmentado com sucesso'
+						SET @cont = @cont + 1
+
+					END TRY
+					BEGIN CATCH
+
+						print 'Não é possível executar uma operação online para índice ' + @nome_indice + ' porque o índice contém a colunas de tipo de dados text, ntext, image ou FILESTREAM.'
+						SET @cont_not = @cont_not + 1
+
+					END CATCH;
+
+	
+				-- Lendo a próxima linha
+				FETCH NEXT FROM desfragmenta_banco INTO @nome_tabela, @nome_indice, @fragmentacao_media, @script
+				END
+ 
+				-- Fechando Cursor para leitura
+				CLOSE desfragmenta_banco
+ 
+				-- Finalizado o cursor
+				DEALLOCATE desfragmenta_banco
+
+				PRINT ''
+				PRINT 'Indices Alterados: '						+ CAST( @cont AS NVARCHAR(20) )
+				PRINT 'Indices que não puderam ser Alterados: ' + CAST( @cont_not AS NVARCHAR(20) )
+				PRINT 'Indices Total: '							+ CAST( ( @cont + @cont_not) AS NVARCHAR(20) )
+
+
+			END			
+			GO
+	
