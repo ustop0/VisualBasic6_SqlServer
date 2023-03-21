@@ -115,6 +115,5 @@
 				PRINT 'Indices que não puderam ser Alterados: ' + CAST( @cont_not AS NVARCHAR(20) )
 				PRINT 'Indices Total: '							+ CAST( ( @cont + @cont_not) AS NVARCHAR(20) )
 
-			END
-			GO
+			END		
 	
